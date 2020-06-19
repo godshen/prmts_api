@@ -351,64 +351,151 @@ func GetSlaSatisfactionIndex(w http.ResponseWriter, r *http.Request) (bool, inte
 
 // service类函数待实现
 
-// PostServiceResponseTime函数
-	// 调用prometheus查询api
+// PostServiceResponseTime 函数
+// 调用prometheus查询api
+func PostServiceResponseTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	log.Printf("%+v", serviceIDInt)
 
-// PostServiceNumbers函数
-	// 调用prometheus查询api
+	return true, "success"
+}
 
-// PostRequestSuccessTotal函数
-	// 调用prometheus查询api
+// PostServiceNumbers 函数
+// 调用prometheus查询api
+func PostServiceNumbers(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	log.Printf("%+v", serviceIDInt)
 
-// PostRequestFailTotal函数
-	// 调用prometheus查询api
+	return true, "success"
+}
 
-// PostServiceAvailableTime函数
-	// 调用prometheus查询api
+// PostRequestSuccessTotal 函数
+// 调用prometheus查询api
+func PostRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	log.Printf("%+v", serviceIDInt)
 
-// PostServiceUnavailableTime函数
-	// 调用prometheus查询api
+	return true, "success"
+}
+
+// PostRequestFailTotal 函数
+// 调用prometheus查询api
+func PostRequestFailTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	log.Printf("%+v", serviceIDInt)
+
+	return true, "success"
+}
+
+// PostServiceAvailableTime 函数
+// 调用prometheus查询api
+func PostServiceAvailableTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	log.Printf("%+v", serviceIDInt)
+
+	return true, "success"
+}
+
+// PostServiceUnavailableTime 函数
+// 调用prometheus查询api
+func PostServiceUnavailableTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	log.Printf("%+v", serviceIDInt)
+
+	return true, "success"
+}
 
 // algorithm类函数待实现
 
-// PostReliabilityIndex函数
+// PostReliabilityIndex 函数
 	// 把获取的时序数据取出来用于计算
 	// 输入GetRequestFailTotal函数,GetRequestSuccessTotal函数获取的时序数据
 	// 公式略（已有）
 	// 输出Reliability计算结果
+func PostReliabilityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostAvailabilityIndex函数
+// PostAvailabilityIndex 函数
 	// 把获取的时序数据取出来用于计算
 	// 输入GetServiceAvailableTime函数,GetServiceUnavailableTime函数获取的时序数据
 	// 公式略（已有）
 	// 输出Availability计算结果
+func PostAvailabilityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostStabilityIndex函数
+// PostStabilityIndex 函数
 	// 把获取的时序数据取出来用于计算
 	// 输入GetServiceResponseTime函数获取的时序数据
 	// 公式略（已有）
 	// 输出Availability计算结果
+func PostStabilityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostCostIndex函数
+// PostCostIndex 函数
 	// 把获取的时序数据取出来用于计算
 	// 输入GetServiceNumbers函数获取的时序数据
 	// 公式略（已有）
 	// 输出Cost计算结果
+func PostCostIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostElasticityIndex函数
+// PostElasticityIndex 函数
 	// 把获取的时序数据取出来用于计算
 	// 输入GetServiceNumbers函数获取的时序数据
 	// 公式略（已有）
 	// 输出Elasticity计算结果
+func PostElasticityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostOscillationIndex函数
+// PostOscillationIndex 函数
 	// 把获取的时序数据取出来用于计算
 	// 输入GetServiceNumbers函数获取的时序数据
 	// 公式略（已有）
 	// 输出Oscillation计算结果
+func PostOscillationIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostSlaSatisfactionIndex函数
+// PostSlaSatisfactionIndex 函数
 	// 把获取的时序数据取出来用于计算
 	// 输入GetServiceResponseTime函数获取的时序数据
 	// 公式略（已有）
 	// 输出SlaSatisfaction计算结果
+func PostSlaSatisfactionIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
