@@ -2,12 +2,11 @@ package controller
 
 import (
 	"control/model"
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
-
+	"io/ioutil"
+	"encoding/json"
 	"github.com/gorilla/mux"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -40,8 +39,8 @@ func ServiceLogUp(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 
 func GetServiceRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据ApplicationService中的ServiceAddress、ServiceNamespace、ServiceName信息
-	// 调用k8s的实例扩缩api【获取】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【获取】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -58,8 +57,8 @@ func GetServiceRunStatus(w http.ResponseWriter, r *http.Request) (bool, interfac
 
 func PatchServiceRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据ApplicationService中的ServiceAddress、ServiceNamespace、ServiceName信息
-	// 调用k8s的实例扩缩api【更新】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【更新】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID, status := vars["id"], vars["is_running"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -124,7 +123,7 @@ func GetServiceNumbers(w http.ResponseWriter, r *http.Request) (bool, interface{
 	return true, appMetric.PodNumber
 }
 
-func GetRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+func GetRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}){
 	vars := mux.Vars(r)
 	appID := vars["id"]
 	appIDInt, err := strconv.Atoi(appID)
@@ -207,8 +206,8 @@ func AlgorithmLogUp(w http.ResponseWriter, r *http.Request) (bool, interface{}) 
 
 func GetAlgorithmRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据AlgorithmService中的AlgorithmAddress、AlgorithmNamespace、AlgorithmName信息
-	// 调用k8s的实例扩缩api【获取】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【获取】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -225,8 +224,8 @@ func GetAlgorithmRunStatus(w http.ResponseWriter, r *http.Request) (bool, interf
 
 func PatchAlgorithmRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据AlgorithmService中的AlgorithmAddress、AlgorithmNamespace、AlgorithmName信息
-	// 调用k8s的实例扩缩api【更新】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【更新】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID, status := vars["id"], vars["is_running"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -350,123 +349,66 @@ func GetSlaSatisfactionIndex(w http.ResponseWriter, r *http.Request) (bool, inte
 	return true, metric.SLASatisfaction
 }
 
-func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
-	vars := mux.Vars(r)
-	serviceID:= vars["id"]
-	serviceIDInt, err := strconv.Atoi(serviceID)
-	if err != nil {
-		return false, err
-	}
-	
-	r.ParseForm()
-	service := model.ApplicationMetric{}
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println(err)
-		return false, "Can not read body"
-	}
-	if err := json.Unmarshal(body, &service); err != nil {
-		log.Println(err)
-		return false, "Invalid json message"
-	}
-	log.Println(service)
-
-	err = model.UpdateServiceMetrics(serviceIDInt, service)
-	if err != nil {
-		log.Println(err)
-		return false, "Update service fail"
-	}
-	return true, nil
-}
-
-func UpdateAlgorithmMetrics(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
-	vars := mux.Vars(r)
-	serviceID:= vars["id"]
-	serviceIDInt, err := strconv.Atoi(serviceID)
-	if err != nil {
-		return false, err
-	}
-	
-	r.ParseForm()
-	service := model.AlgorithmMetric{}
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println(err)
-		return false, "Can not read body"
-	}
-	if err := json.Unmarshal(body, &service); err != nil {
-		log.Println(err)
-		return false, "Invalid json message"
-	}
-	log.Println(service)
-
-	err = model.UpdateAlgorithmMetrics(serviceIDInt, service)
-	if err != nil {
-		log.Println(err)
-		return false, "Update service fail"
-	}
-	return true, nil
-}
 // service类函数待实现
 
 // PostServiceResponseTime函数
-// 调用prometheus查询api
+	// 调用prometheus查询api
 
 // PostServiceNumbers函数
-// 调用prometheus查询api
+	// 调用prometheus查询api
 
 // PostRequestSuccessTotal函数
-// 调用prometheus查询api
+	// 调用prometheus查询api
 
 // PostRequestFailTotal函数
-// 调用prometheus查询api
+	// 调用prometheus查询api
 
 // PostServiceAvailableTime函数
-// 调用prometheus查询api
+	// 调用prometheus查询api
 
 // PostServiceUnavailableTime函数
-// 调用prometheus查询api
+	// 调用prometheus查询api
 
 // algorithm类函数待实现
 
 // PostReliabilityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetRequestFailTotal函数,GetRequestSuccessTotal函数获取的时序数据
-// 公式略（已有）
-// 输出Reliability计算结果
+	// 把获取的时序数据取出来用于计算
+	// 输入GetRequestFailTotal函数,GetRequestSuccessTotal函数获取的时序数据
+	// 公式略（已有）
+	// 输出Reliability计算结果
 
 // PostAvailabilityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceAvailableTime函数,GetServiceUnavailableTime函数获取的时序数据
-// 公式略（已有）
-// 输出Availability计算结果
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceAvailableTime函数,GetServiceUnavailableTime函数获取的时序数据
+	// 公式略（已有）
+	// 输出Availability计算结果
 
 // PostStabilityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceResponseTime函数获取的时序数据
-// 公式略（已有）
-// 输出Availability计算结果
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceResponseTime函数获取的时序数据
+	// 公式略（已有）
+	// 输出Availability计算结果
 
 // PostCostIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceNumbers函数获取的时序数据
-// 公式略（已有）
-// 输出Cost计算结果
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceNumbers函数获取的时序数据
+	// 公式略（已有）
+	// 输出Cost计算结果
 
 // PostElasticityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceNumbers函数获取的时序数据
-// 公式略（已有）
-// 输出Elasticity计算结果
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceNumbers函数获取的时序数据
+	// 公式略（已有）
+	// 输出Elasticity计算结果
 
 // PostOscillationIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceNumbers函数获取的时序数据
-// 公式略（已有）
-// 输出Oscillation计算结果
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceNumbers函数获取的时序数据
+	// 公式略（已有）
+	// 输出Oscillation计算结果
 
 // PostSlaSatisfactionIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceResponseTime函数获取的时序数据
-// 公式略（已有）
-// 输出SlaSatisfaction计算结果
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceResponseTime函数获取的时序数据
+	// 公式略（已有）
+	// 输出SlaSatisfaction计算结果

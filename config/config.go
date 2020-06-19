@@ -1,12 +1,12 @@
 package config
 
 /* Database config */
-var Db_name = "jx_project"
+var Db_name = "jx_test"
 var Mysql = "mysql"
-var MysqlLocation = "117.78.10.6"
+var MysqlLocation = "127.0.0.1"
 var MysqlPort = "3306"
 var User = "root"
-var Password = "tianHAOyuQI361"
+var Password = "root"
 
 //var MysqlLocation = os.Getenv("DATABASE_ADDRESS")
 //var MysqlPort = os.Getenv("DATABASE_PORT")

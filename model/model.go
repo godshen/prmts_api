@@ -66,25 +66,3 @@ func UpdateAlgorithmRunStatus(id int, status int) (error) {
     }
     return nil
 }
-
-func UpdateServiceMetrics(id int, info ApplicationMetric) (error) {
-    service := ApplicationMetric{}
-    if err := GormDB.First(&service, id).Error; err != nil {
-        return err
-    }
-    if err := GormDB.Model(&service).Updates(info).Error; err != nil {
-        return err
-    }
-    return nil
-}
-
-func UpdateAlgorithmMetrics(id int, info AlgorithmMetric) (error) {
-    service := AlgorithmMetric{}
-    if err := GormDB.First(&service, id).Error; err != nil {
-        return err
-    }
-    if err := GormDB.Model(&service).Updates(info).Error; err != nil {
-        return err
-    }
-    return nil
-}
