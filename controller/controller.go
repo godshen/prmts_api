@@ -2,13 +2,14 @@ package controller
 
 import (
 	"control/model"
+	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
-	"io/ioutil"
-	"encoding/json"
-	"github.com/gorilla/mux"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 func HomeHandler(w http.ResponseWriter, req *http.Request) {
@@ -349,6 +350,34 @@ func GetSlaSatisfactionIndex(w http.ResponseWriter, r *http.Request) (bool, inte
 	return true, metric.SLASatisfaction
 }
 
+func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID:= vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+
+	r.ParseForm()
+	service := model.ApplicationMetric{}
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println(err)
+		return false, "Can not read body"
+	}
+	if err := json.Unmarshal(body, &service); err != nil {
+		log.Println(err)
+		return false, "Invalid json message"
+	}
+	log.Println(service)
+
+	err = model.UpdateServiceMetrics(serviceIDInt, service)
+	if err != nil {
+		log.Println(err)
+		return false, "Update service fail"
+	}
+	return true, nil
+}
 // service类函数待实现
 
 // PostServiceResponseTime 函数
@@ -360,9 +389,10 @@ func PostServiceResponseTime(w http.ResponseWriter, r *http.Request) (bool, inte
 	if err != nil {
 		return false, err
 	}
-	log.Printf("%+v", serviceIDInt)
+	responseTime := vars["response_time"]
+	FetchData(_responseTimeApi, 3600)
 
-	return true, "success"
+	return true, fmt.Sprintf("%d, %s", serviceIDInt, responseTime)
 }
 
 // PostServiceNumbers 函数

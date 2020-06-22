@@ -2,10 +2,6 @@ package model
 
 import (
 	"control/config"
-	"fmt"
-	"log"
-	"os"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 )
@@ -15,6 +11,7 @@ var maxConnectionTime = 5
 
 func init() {
 	//连接数据库
+	/*
 	times := 1
 	for err := connectDB(); err != nil; times++ {
 		if times == maxConnectionTime {
@@ -24,6 +21,7 @@ func init() {
 		}
 		log.Print("connect database with error", err, "reconnecting...")
 	}
+	 */
 
 }
 
