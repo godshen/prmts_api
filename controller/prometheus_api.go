@@ -15,7 +15,7 @@ import (
 const (
 	_timeFormat                   = "2006-01-02 15:04:05"
 	_commonTimeout                = 10 * time.Second
-	_lastedTime                   = 3600
+	_lastedTime                   = 60
 	_prometheusUrl                = "http://139.9.57.167:9090/api/v1/query"
 	_demandPodApi                 = "instance_predict_v1"
 	_throughputApi                = "sum(rate(istio_requests_total{destination_workload_namespace='jx-test',reporter='destination',destination_workload='cproductpage'}[30s]))"
@@ -33,11 +33,12 @@ func NewPrometheusClient() {
 	prometheusClient = &http.Client{}
 }
 
-func doRequest(apiUrl string, qTime int64, qApi string) (msg string, err error) {
+func doRequest(apiUrl string, qTime int64, qApi string) (resBody *model.ApiDataModel, err error) {
+	resBody = &model.ApiDataModel{}
 	var req *http.Request
 	req, err = http.NewRequest("GET", apiUrl, nil)
 	if err != nil {
-		msg = fmt.Sprintf("NewRequest Failed, URL:%s, err:%v", apiUrl, err)
+		msg := fmt.Sprintf("NewRequest Failed, URL:%s, err:%v", apiUrl, err)
 		log.Print(msg)
 		return
 	}
@@ -54,51 +55,60 @@ func doRequest(apiUrl string, qTime int64, qApi string) (msg string, err error) 
 	total := 0
 	if err == nil {
 		total, _ = response.Body.Read(bodyByte)
-		fmt.Printf("%s\n", string(bodyByte))
 	} else {
 		fmt.Printf("%+v\n", err)
 	}
-	resBody := &model.ApiDataModel{}
 	err = json.Unmarshal(bodyByte[:total], resBody)
-	fmt.Printf("%+v\n", err)
-	fmt.Printf("%+v\n", resBody)
 	if err != nil {
-		msg = fmt.Sprintf("Http Get Failed: URL:%s, err:%v", apiUrl, err)
+		msg := fmt.Sprintf("Http Get Failed: URL:%s, err:%v", apiUrl, err)
 		log.Print(msg)
 		return
 	}
 	defer response.Body.Close()
 	_, err = ioutil.ReadAll(response.Body)
 	if err != nil {
-		msg = fmt.Sprintf("Http Get Failed: URL:%s, err:%v", apiUrl, err)
+		msg := fmt.Sprintf("Http Get Failed: URL:%s, err:%v", apiUrl, err)
 		log.Print(msg)
 	}
 	return
 }
 
+func getResValue(r *model.ApiDataModel) int64 {
+	if r == nil {
+		return 0
+	}
+	if r.Status != "success" {
+		return 0
+	}
+	if len(r.Data.Result) == 0 {
+		return 0
+	}
+	dataTmp := r.Data.Result[0].Value[1]
+	dataStr := dataTmp.(string)
+	dataRet, _ := strconv.ParseInt(dataStr, 10, 64)
+	return dataRet
+}
+
 func fetchData(apiStr string, startTime, lastedTime int64) (valueRet int64) {
 	valueRet = 0
+	validCount := int64(0)
 	for i := int64(0); i < lastedTime; i += 5 {
 		queryTime := startTime + i
-		queryTimeStr := time.Unix(queryTime, 0)
-		fmt.Printf("%+v\n", queryTimeStr.String())
-		_, _ = doRequest(_prometheusUrl, queryTime, apiStr)
-		res := make(map[string]struct{})
-		// if "result" in res && len(res["result"]) > 0 && "value" in res["result"][0] {
-		if hasResult(res["result"]) {
-			// v := res["result"][0]["value"]
-			// sv := strconv.Itoa(v[1])
-			sv := ""
-			if sv == "NaN" {
-				// print("0", file=pout)
-			} else {
-				// print(sv, file=pout)
-			}
-
+		dataRes, err := doRequest(_prometheusUrl, queryTime, apiStr)
+		if err != nil {
+			continue
+		}
+		if v := getResValue(dataRes); v != 0 {
+			valueRet += v
+			validCount++
+			log.Printf("apiStr: get %d", v)
 		} else {
-			// print("0", file=pout)
+			log.Printf("apiStr get no data")
 		}
 
+	}
+	if validCount != 0 {
+		valueRet = valueRet / validCount
 	}
 	return
 }
@@ -110,29 +120,25 @@ func FetchDataAll(id int) (serviceRes model.ApplicationMetric) {
 	startNow := time.Now().Unix()
 	// fetchData(_throughputApi, startNow, _lastedTime)
 
-	ResponseTime := fetchData(_responseTimeApi, startNow, _lastedTime)
-	serviceRes.ResponseTime = ResponseTime
+	retResponseTime := fetchData(_responseTimeApi, startNow, _lastedTime)
+	serviceRes.ResponseTime = retResponseTime
 
-	PodNumber := fetchData(_supplyPodApi, startNow, _lastedTime)
-	serviceRes.PodNumber = PodNumber
+	retPodNumber := fetchData(_supplyPodApi, startNow, _lastedTime)
+	serviceRes.PodNumber = retPodNumber
 
 	// fetchData(_demandPodApi, startNow, _lastedTime)
 
-	RequestSuccessTotal := fetchData(_requestSuccessTotalApi, startNow, _lastedTime)
-	serviceRes.RequestSuccessTotal = RequestSuccessTotal
+	retRequestSuccessTotal := fetchData(_requestSuccessTotalApi, startNow, _lastedTime)
+	serviceRes.RequestSuccessTotal = retRequestSuccessTotal
 
-	RequestFailTotal := fetchData(_requestFailTotalApi, startNow, _lastedTime)
-	serviceRes.RequestFailTotal = RequestFailTotal
+	retRequestFailTotal := fetchData(_requestFailTotalApi, startNow, _lastedTime)
+	serviceRes.RequestFailTotal = retRequestFailTotal
 
-	ServiceTimeUnavailable := fetchData(_serviceTimeFailTotalApi, startNow, _lastedTime)
-	serviceRes.ServiceTimeUnavailable = ServiceTimeUnavailable
+	retServiceTimeUnavailable := fetchData(_serviceTimeFailTotalApi, startNow, _lastedTime)
+	serviceRes.ServiceTimeUnavailable = retServiceTimeUnavailable
 
-	ServiceTimeAvailable := fetchData(_serviceTimeAvailableTotalApi, startNow, _lastedTime)
-	serviceRes.ServiceTimeAvailable = ServiceTimeAvailable
+	retServiceTimeAvailable := fetchData(_serviceTimeAvailableTotalApi, startNow, _lastedTime)
+	serviceRes.ServiceTimeAvailable = retServiceTimeAvailable
 
 	return
-}
-
-func hasResult(v interface{}) bool {
-	return true
 }

@@ -1,21 +1,10 @@
 package model
 
 import (
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type SubApiDataModel struct {
-	Metric interface{}   `json:"metric"`
-	Value  []interface{} `json:"value"`
-}
-
-type ApiDataModel struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string      `json:"resultType"`
-		Result     interface{} `json:"result"`
-	} `json:"data"`
-}
 
 func Test(username string) (User, error) {
 	u := User{}
@@ -80,7 +69,10 @@ func UpdateAlgorithmRunStatus(id int, status int) error {
 	return nil
 }
 
-func UpdateServiceMetrics(id int, info ApplicationMetric) (error) {
+func UpdateServiceMetrics(id int, info ApplicationMetric) error {
+	if GormDB == nil {
+		return errors.New("No Database")
+	}
 	service := ApplicationMetric{}
 	if err := GormDB.First(&service, id).Error; err != nil {
 		return err
@@ -92,6 +84,9 @@ func UpdateServiceMetrics(id int, info ApplicationMetric) (error) {
 }
 
 func UpdateServiceResponseTime(id int, responseTime int64) error {
+	if GormDB == nil {
+		return errors.New("No Database")
+	}
 	service := ApplicationMetric{}
 	if err := GormDB.First(&service, id).Error; err != nil {
 		return err
@@ -103,6 +98,9 @@ func UpdateServiceResponseTime(id int, responseTime int64) error {
 }
 
 func UpdateServiceNumbers(id int, podNumber int64) error {
+	if GormDB == nil {
+		return errors.New("No Database")
+	}
 	service := ApplicationMetric{}
 	if err := GormDB.First(&service, id).Error; err != nil {
 		return err
@@ -114,6 +112,9 @@ func UpdateServiceNumbers(id int, podNumber int64) error {
 }
 
 func UpdateRequestSuccessTotal(id int, requestSuccessTotal int64) error {
+	if GormDB == nil {
+		return errors.New("No Database")
+	}
 	service := ApplicationMetric{}
 	if err := GormDB.First(&service, id).Error; err != nil {
 		return err
@@ -125,6 +126,9 @@ func UpdateRequestSuccessTotal(id int, requestSuccessTotal int64) error {
 }
 
 func UpdateRequestFailTotal(id int, requestFailTotal int64) error {
+	if GormDB == nil {
+		return errors.New("No Database")
+	}
 	service := ApplicationMetric{}
 	if err := GormDB.First(&service, id).Error; err != nil {
 		return err
@@ -136,6 +140,9 @@ func UpdateRequestFailTotal(id int, requestFailTotal int64) error {
 }
 
 func UpdateServiceAvailableTime(id int, serviceTimeAvailable int64) error {
+	if GormDB == nil {
+		return errors.New("No Database")
+	}
 	service := ApplicationMetric{}
 	if err := GormDB.First(&service, id).Error; err != nil {
 		return err
@@ -147,6 +154,9 @@ func UpdateServiceAvailableTime(id int, serviceTimeAvailable int64) error {
 }
 
 func UpdateServiceUnavailableTime(id int, serviceTimeUnavailable int64) error {
+	if GormDB == nil {
+		return errors.New("No Database")
+	}
 	service := ApplicationMetric{}
 	if err := GormDB.First(&service, id).Error; err != nil {
 		return err

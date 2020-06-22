@@ -369,7 +369,7 @@ func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interfa
 		log.Println(err)
 		return false, "Invalid json message"
 	}
-	log.Println(service)
+	//log.Println(service)
 
 	service = FetchDataAll(serviceIDInt)
 	err = model.UpdateServiceMetrics(serviceIDInt, service)
@@ -377,7 +377,7 @@ func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interfa
 		log.Println(err)
 		return false, "Update service fail"
 	}
-	return true, nil
+	return true, "success"
 }
 // service类函数待实现
 

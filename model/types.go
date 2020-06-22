@@ -93,3 +93,17 @@ type Workload struct {
 func (Workload) TableName() string {
 	return "workload"
 }
+
+
+type SubApiDataModel struct {
+	Metric interface{}   `json:"metric"`
+	Value  []interface{} `json:"value"`
+}
+
+type ApiDataModel struct {
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string            `json:"resultType"`
+		Result     []SubApiDataModel `json:"result"`
+	} `json:"data"`
+}
