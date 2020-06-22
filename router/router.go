@@ -28,6 +28,7 @@ func GetServer() *negroni.Negroni {
 	// service POST
 	r.Handle("/services/logUp", controller.ResponseHandler(controller.ServiceLogUp)).Methods("POST")
 	// 待实现
+	r.Handle("/services/{id}/update_metrics", controller.ResponseHandler(controller.UpdateServiceMetrics)).Methods("PUT")
 	r.Handle("/services/{id}/rtime/{response_time}", controller.ResponseHandler(controller.PostServiceResponseTime)).Methods("POST")
 	r.Handle("/services/{id}/number/{pod_number}", controller.ResponseHandler(controller.PostServiceNumbers)).Methods("POST")
 	r.Handle("/services/{id}/stotal/{request_success_total}", controller.ResponseHandler(controller.PostRequestSuccessTotal)).Methods("POST")

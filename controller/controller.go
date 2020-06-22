@@ -3,13 +3,13 @@ package controller
 import (
 	"control/model"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func HomeHandler(w http.ResponseWriter, req *http.Request) {
@@ -371,6 +371,7 @@ func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interfa
 	}
 	log.Println(service)
 
+	service = FetchDataAll(serviceIDInt)
 	err = model.UpdateServiceMetrics(serviceIDInt, service)
 	if err != nil {
 		log.Println(err)
@@ -381,7 +382,6 @@ func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interfa
 // service类函数待实现
 
 // PostServiceResponseTime 函数
-// 调用prometheus查询api
 func PostServiceResponseTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
@@ -390,13 +390,16 @@ func PostServiceResponseTime(w http.ResponseWriter, r *http.Request) (bool, inte
 		return false, err
 	}
 	responseTime := vars["response_time"]
-	FetchData(_responseTimeApi, 3600)
-
-	return true, fmt.Sprintf("%d, %s", serviceIDInt, responseTime)
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	responseTimeInt, _ := time.ParseInLocation(_timeFormat, responseTime, loc)
+	err = model.UpdateServiceResponseTime(serviceIDInt, responseTimeInt.Unix())
+	if err != nil {
+		return false, err
+	}
+	return true, "success"
 }
 
 // PostServiceNumbers 函数
-// 调用prometheus查询api
 func PostServiceNumbers(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
@@ -404,13 +407,20 @@ func PostServiceNumbers(w http.ResponseWriter, r *http.Request) (bool, interface
 	if err != nil {
 		return false, err
 	}
-	log.Printf("%+v", serviceIDInt)
+	podNumber := vars["pod_number"]
+	podNumberInt, err := strconv.ParseInt(podNumber, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateServiceNumbers(serviceIDInt, podNumberInt)
+	if err != nil {
+		return false, err
+	}
 
 	return true, "success"
 }
 
 // PostRequestSuccessTotal 函数
-// 调用prometheus查询api
 func PostRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
@@ -418,13 +428,20 @@ func PostRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, inte
 	if err != nil {
 		return false, err
 	}
-	log.Printf("%+v", serviceIDInt)
+	requestSuccessTotal := vars["request_success_total"]
+	requestSuccessTotalInt, err := strconv.ParseInt(requestSuccessTotal, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateRequestSuccessTotal(serviceIDInt, requestSuccessTotalInt)
+	if err != nil {
+		return false, err
+	}
 
 	return true, "success"
 }
 
 // PostRequestFailTotal 函数
-// 调用prometheus查询api
 func PostRequestFailTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
@@ -432,13 +449,20 @@ func PostRequestFailTotal(w http.ResponseWriter, r *http.Request) (bool, interfa
 	if err != nil {
 		return false, err
 	}
-	log.Printf("%+v", serviceIDInt)
+	requestFailTotal := vars["request_fail_total"]
+	requestFailTotalInt, err := strconv.ParseInt(requestFailTotal, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateRequestFailTotal(serviceIDInt, requestFailTotalInt)
+	if err != nil {
+		return false, err
+	}
 
 	return true, "success"
 }
 
 // PostServiceAvailableTime 函数
-// 调用prometheus查询api
 func PostServiceAvailableTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
@@ -446,13 +470,20 @@ func PostServiceAvailableTime(w http.ResponseWriter, r *http.Request) (bool, int
 	if err != nil {
 		return false, err
 	}
-	log.Printf("%+v", serviceIDInt)
+	serviceTimeAvailable := vars["service_time_available"]
+	serviceTimeAvailableInt, err := strconv.ParseInt(serviceTimeAvailable, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateServiceAvailableTime(serviceIDInt, serviceTimeAvailableInt)
+	if err != nil {
+		return false, err
+	}
 
 	return true, "success"
 }
 
 // PostServiceUnavailableTime 函数
-// 调用prometheus查询api
 func PostServiceUnavailableTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
@@ -460,7 +491,15 @@ func PostServiceUnavailableTime(w http.ResponseWriter, r *http.Request) (bool, i
 	if err != nil {
 		return false, err
 	}
-	log.Printf("%+v", serviceIDInt)
+	serviceTimeUnavailable := vars["service_time_unavailable"]
+	serviceTimeUnavailableInt, err := strconv.ParseInt(serviceTimeUnavailable, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateServiceUnavailableTime(serviceIDInt, serviceTimeUnavailableInt)
+	if err != nil {
+		return false, err
+	}
 
 	return true, "success"
 }

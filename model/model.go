@@ -90,3 +90,69 @@ func UpdateServiceMetrics(id int, info ApplicationMetric) (error) {
 	}
 	return nil
 }
+
+func UpdateServiceResponseTime(id int, responseTime int64) error {
+	service := ApplicationMetric{}
+	if err := GormDB.First(&service, id).Error; err != nil {
+		return err
+	}
+	if err := GormDB.Model(&service).Update("response_time", responseTime).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateServiceNumbers(id int, podNumber int64) error {
+	service := ApplicationMetric{}
+	if err := GormDB.First(&service, id).Error; err != nil {
+		return err
+	}
+	if err := GormDB.Model(&service).Update("pod_number", podNumber).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateRequestSuccessTotal(id int, requestSuccessTotal int64) error {
+	service := ApplicationMetric{}
+	if err := GormDB.First(&service, id).Error; err != nil {
+		return err
+	}
+	if err := GormDB.Model(&service).Update("request_success_total", requestSuccessTotal).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateRequestFailTotal(id int, requestFailTotal int64) error {
+	service := ApplicationMetric{}
+	if err := GormDB.First(&service, id).Error; err != nil {
+		return err
+	}
+	if err := GormDB.Model(&service).Update("request_fail_total", requestFailTotal).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateServiceAvailableTime(id int, serviceTimeAvailable int64) error {
+	service := ApplicationMetric{}
+	if err := GormDB.First(&service, id).Error; err != nil {
+		return err
+	}
+	if err := GormDB.Model(&service).Update("service_time_available", serviceTimeAvailable).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateServiceUnavailableTime(id int, serviceTimeUnavailable int64) error {
+	service := ApplicationMetric{}
+	if err := GormDB.First(&service, id).Error; err != nil {
+		return err
+	}
+	if err := GormDB.Model(&service).Update("service_time_unavailable", serviceTimeUnavailable).Error; err != nil {
+		return err
+	}
+	return nil
+}

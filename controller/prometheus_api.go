@@ -15,7 +15,10 @@ import (
 const (
 	_timeFormat                   = "2006-01-02 15:04:05"
 	_commonTimeout                = 10 * time.Second
+	_lastedTime                   = 3600
 	_prometheusUrl                = "http://139.9.57.167:9090/api/v1/query"
+	_demandPodApi                 = "instance_predict_v1"
+	_throughputApi                = "sum(rate(istio_requests_total{destination_workload_namespace='jx-test',reporter='destination',destination_workload='cproductpage'}[30s]))"
 	_responseTimeApi              = "sum(delta(istio_request_duration_seconds_sum{destination_workload_namespace='jx-test',reporter='destination',destination_workload='cproductpage'}[15s]))/sum(delta(istio_request_duration_seconds_count{destination_workload_namespace='jx-test',reporter='destination',destination_workload='cproductpage'}[15s])) * 1000"
 	_supplyPodApi                 = "count(sum(rate(container_cpu_usage_seconds_total{image!='',namespace='jx-test',pod_name=~'cproductpage.*'}[10s])) by (pod_name, namespace))"
 	_requestSuccessTotalApi       = "sum(istio_requests_total{destination_workload_namespace='jx-test',reporter='destination',destination_workload='cproductpage',response_code=~'2.*'})"
@@ -73,11 +76,10 @@ func doRequest(apiUrl string, qTime int64, qApi string) (msg string, err error) 
 	return
 }
 
-func FetchData(apiStr string, lastedTime int64) {
-	start := time.Now().Unix()
-	// for i in range(0, lastedTime, 5):
+func fetchData(apiStr string, startTime, lastedTime int64) (valueRet int64) {
+	valueRet = 0
 	for i := int64(0); i < lastedTime; i += 5 {
-		queryTime := start + i
+		queryTime := startTime + i
 		queryTimeStr := time.Unix(queryTime, 0)
 		fmt.Printf("%+v\n", queryTimeStr.String())
 		_, _ = doRequest(_prometheusUrl, queryTime, apiStr)
@@ -98,7 +100,37 @@ func FetchData(apiStr string, lastedTime int64) {
 		}
 
 	}
+	return
+}
 
+func FetchDataAll(id int) (serviceRes model.ApplicationMetric) {
+	serviceRes = model.ApplicationMetric{
+		ID: id,
+	}
+	startNow := time.Now().Unix()
+	// fetchData(_throughputApi, startNow, _lastedTime)
+
+	ResponseTime := fetchData(_responseTimeApi, startNow, _lastedTime)
+	serviceRes.ResponseTime = ResponseTime
+
+	PodNumber := fetchData(_supplyPodApi, startNow, _lastedTime)
+	serviceRes.PodNumber = PodNumber
+
+	// fetchData(_demandPodApi, startNow, _lastedTime)
+
+	RequestSuccessTotal := fetchData(_requestSuccessTotalApi, startNow, _lastedTime)
+	serviceRes.RequestSuccessTotal = RequestSuccessTotal
+
+	RequestFailTotal := fetchData(_requestFailTotalApi, startNow, _lastedTime)
+	serviceRes.RequestFailTotal = RequestFailTotal
+
+	ServiceTimeUnavailable := fetchData(_serviceTimeFailTotalApi, startNow, _lastedTime)
+	serviceRes.ServiceTimeUnavailable = ServiceTimeUnavailable
+
+	ServiceTimeAvailable := fetchData(_serviceTimeAvailableTotalApi, startNow, _lastedTime)
+	serviceRes.ServiceTimeAvailable = ServiceTimeAvailable
+
+	return
 }
 
 func hasResult(v interface{}) bool {
