@@ -3,13 +3,13 @@ package controller
 import (
 	"control/model"
 	"encoding/json"
+	"github.com/gorilla/mux"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"time"
 )
 
 func HomeHandler(w http.ResponseWriter, req *http.Request) {
@@ -40,8 +40,8 @@ func ServiceLogUp(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 
 func GetServiceRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据ApplicationService中的ServiceAddress、ServiceNamespace、ServiceName信息
-	// 调用k8s的实例扩缩api【获取】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【获取】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -58,8 +58,8 @@ func GetServiceRunStatus(w http.ResponseWriter, r *http.Request) (bool, interfac
 
 func PatchServiceRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据ApplicationService中的ServiceAddress、ServiceNamespace、ServiceName信息
-	// 调用k8s的实例扩缩api【更新】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【更新】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID, status := vars["id"], vars["is_running"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -124,7 +124,7 @@ func GetServiceNumbers(w http.ResponseWriter, r *http.Request) (bool, interface{
 	return true, appMetric.PodNumber
 }
 
-func GetRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+func GetRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}){
 	vars := mux.Vars(r)
 	appID := vars["id"]
 	appIDInt, err := strconv.Atoi(appID)
@@ -207,8 +207,8 @@ func AlgorithmLogUp(w http.ResponseWriter, r *http.Request) (bool, interface{}) 
 
 func GetAlgorithmRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据AlgorithmService中的AlgorithmAddress、AlgorithmNamespace、AlgorithmName信息
-	// 调用k8s的实例扩缩api【获取】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【获取】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID := vars["id"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -225,8 +225,8 @@ func GetAlgorithmRunStatus(w http.ResponseWriter, r *http.Request) (bool, interf
 
 func PatchAlgorithmRunStatus(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	// 根据AlgorithmService中的AlgorithmAddress、AlgorithmNamespace、AlgorithmName信息
-	// 调用k8s的实例扩缩api【更新】应用服务状态
-	//（0表示未就绪、1表示运行中）
+    // 调用k8s的实例扩缩api【更新】应用服务状态
+    //（0表示未就绪、1表示运行中）
 	vars := mux.Vars(r)
 	serviceID, status := vars["id"], vars["is_running"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
@@ -357,7 +357,7 @@ func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interfa
 	if err != nil {
 		return false, err
 	}
-	
+
 	r.ParseForm()
 	service := model.ApplicationMetric{}
 	body, err := ioutil.ReadAll(r.Body)
@@ -369,104 +369,202 @@ func UpdateServiceMetrics(w http.ResponseWriter, r *http.Request) (bool, interfa
 		log.Println(err)
 		return false, "Invalid json message"
 	}
-	log.Println(service)
+	//log.Println(service)
 
+	service = FetchDataAll(serviceIDInt)
 	err = model.UpdateServiceMetrics(serviceIDInt, service)
 	if err != nil {
 		log.Println(err)
 		return false, "Update service fail"
 	}
-	return true, nil
+	return true, "success"
 }
+// service类函数待实现
 
-func UpdateAlgorithmMetrics(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+// PostServiceResponseTime 函数
+func PostServiceResponseTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
 	vars := mux.Vars(r)
-	serviceID:= vars["id"]
+	serviceID := vars["id"]
 	serviceIDInt, err := strconv.Atoi(serviceID)
 	if err != nil {
 		return false, err
 	}
-	
-	r.ParseForm()
-	service := model.AlgorithmMetric{}
-	body, err := ioutil.ReadAll(r.Body)
+	responseTime := vars["response_time"]
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	responseTimeInt, _ := time.ParseInLocation(_timeFormat, responseTime, loc)
+	err = model.UpdateServiceResponseTime(serviceIDInt, responseTimeInt.Unix())
 	if err != nil {
-		log.Println(err)
-		return false, "Can not read body"
+		return false, err
 	}
-	if err := json.Unmarshal(body, &service); err != nil {
-		log.Println(err)
-		return false, "Invalid json message"
-	}
-	log.Println(service)
-
-	err = model.UpdateAlgorithmMetrics(serviceIDInt, service)
-	if err != nil {
-		log.Println(err)
-		return false, "Update service fail"
-	}
-	return true, nil
+	return true, "success"
 }
-// service类函数待实现
 
-// PostServiceResponseTime函数
-// 调用prometheus查询api
+// PostServiceNumbers 函数
+func PostServiceNumbers(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	podNumber := vars["pod_number"]
+	podNumberInt, err := strconv.ParseInt(podNumber, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateServiceNumbers(serviceIDInt, podNumberInt)
+	if err != nil {
+		return false, err
+	}
 
-// PostServiceNumbers函数
-// 调用prometheus查询api
+	return true, "success"
+}
 
-// PostRequestSuccessTotal函数
-// 调用prometheus查询api
+// PostRequestSuccessTotal 函数
+func PostRequestSuccessTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	requestSuccessTotal := vars["request_success_total"]
+	requestSuccessTotalInt, err := strconv.ParseInt(requestSuccessTotal, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateRequestSuccessTotal(serviceIDInt, requestSuccessTotalInt)
+	if err != nil {
+		return false, err
+	}
 
-// PostRequestFailTotal函数
-// 调用prometheus查询api
+	return true, "success"
+}
 
-// PostServiceAvailableTime函数
-// 调用prometheus查询api
+// PostRequestFailTotal 函数
+func PostRequestFailTotal(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	requestFailTotal := vars["request_fail_total"]
+	requestFailTotalInt, err := strconv.ParseInt(requestFailTotal, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateRequestFailTotal(serviceIDInt, requestFailTotalInt)
+	if err != nil {
+		return false, err
+	}
 
-// PostServiceUnavailableTime函数
-// 调用prometheus查询api
+	return true, "success"
+}
+
+// PostServiceAvailableTime 函数
+func PostServiceAvailableTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	serviceTimeAvailable := vars["service_time_available"]
+	serviceTimeAvailableInt, err := strconv.ParseInt(serviceTimeAvailable, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateServiceAvailableTime(serviceIDInt, serviceTimeAvailableInt)
+	if err != nil {
+		return false, err
+	}
+
+	return true, "success"
+}
+
+// PostServiceUnavailableTime 函数
+func PostServiceUnavailableTime(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	vars := mux.Vars(r)
+	serviceID := vars["id"]
+	serviceIDInt, err := strconv.Atoi(serviceID)
+	if err != nil {
+		return false, err
+	}
+	serviceTimeUnavailable := vars["service_time_unavailable"]
+	serviceTimeUnavailableInt, err := strconv.ParseInt(serviceTimeUnavailable, 10, 64)
+	if err != nil {
+		return false, err
+	}
+	err = model.UpdateServiceUnavailableTime(serviceIDInt, serviceTimeUnavailableInt)
+	if err != nil {
+		return false, err
+	}
+
+	return true, "success"
+}
 
 // algorithm类函数待实现
 
-// PostReliabilityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetRequestFailTotal函数,GetRequestSuccessTotal函数获取的时序数据
-// 公式略（已有）
-// 输出Reliability计算结果
+// PostReliabilityIndex 函数
+	// 把获取的时序数据取出来用于计算
+	// 输入GetRequestFailTotal函数,GetRequestSuccessTotal函数获取的时序数据
+	// 公式略（已有）
+	// 输出Reliability计算结果
+func PostReliabilityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostAvailabilityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceAvailableTime函数,GetServiceUnavailableTime函数获取的时序数据
-// 公式略（已有）
-// 输出Availability计算结果
+// PostAvailabilityIndex 函数
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceAvailableTime函数,GetServiceUnavailableTime函数获取的时序数据
+	// 公式略（已有）
+	// 输出Availability计算结果
+func PostAvailabilityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostStabilityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceResponseTime函数获取的时序数据
-// 公式略（已有）
-// 输出Availability计算结果
+// PostStabilityIndex 函数
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceResponseTime函数获取的时序数据
+	// 公式略（已有）
+	// 输出Availability计算结果
+func PostStabilityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostCostIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceNumbers函数获取的时序数据
-// 公式略（已有）
-// 输出Cost计算结果
+// PostCostIndex 函数
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceNumbers函数获取的时序数据
+	// 公式略（已有）
+	// 输出Cost计算结果
+func PostCostIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostElasticityIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceNumbers函数获取的时序数据
-// 公式略（已有）
-// 输出Elasticity计算结果
+// PostElasticityIndex 函数
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceNumbers函数获取的时序数据
+	// 公式略（已有）
+	// 输出Elasticity计算结果
+func PostElasticityIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostOscillationIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceNumbers函数获取的时序数据
-// 公式略（已有）
-// 输出Oscillation计算结果
+// PostOscillationIndex 函数
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceNumbers函数获取的时序数据
+	// 公式略（已有）
+	// 输出Oscillation计算结果
+func PostOscillationIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
 
-// PostSlaSatisfactionIndex函数
-// 把获取的时序数据取出来用于计算
-// 输入GetServiceResponseTime函数获取的时序数据
-// 公式略（已有）
-// 输出SlaSatisfaction计算结果
+// PostSlaSatisfactionIndex 函数
+	// 把获取的时序数据取出来用于计算
+	// 输入GetServiceResponseTime函数获取的时序数据
+	// 公式略（已有）
+	// 输出SlaSatisfaction计算结果
+func PostSlaSatisfactionIndex(w http.ResponseWriter, r *http.Request) (bool, interface{}) {
+	return true, "done"
+}
